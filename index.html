@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html>
+    <link rel="stylesheet" href="styles.css">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<head>
+
+</head>
+
+<body>
+    <div id="messages"></div>
+
+    <div id="sendMsg">
+        <input type="text" id="msgTxt" placeholder="Masukkan Pesan...">
+        <input type="submit" id="msgBtn" value="send" onclick="module.sendMsg()">
+    </div>
+
+    <script>
+        module = {};
+    </script>
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.15.0/firebase-app.js";
+        import { getDatabase, ref, set, remove, onChildAdded, onChildRemoved } from "https://www.gstatic.com/firebasejs/9.15.0/firebase-database.js";
+
+        const firebaseConfig = {
+    apiKey: "AIzaSyClBFUAVYs2O6ebyUiHCATSDbdLS0ungwE",
+    authDomain: "mico-5afb2.firebaseapp.com",
+    databaseURL: "https://mico-5afb2-default-rtdb.asia-southeast1.firebasedatabase.app",
+    projectId: "mico-5afb2",
+    storageBucket: "mico-5afb2.appspot.com",
+    messagingSenderId: "948253092470",
+    appId: "1:948253092470:web:87a71b468a0fe390ca0d57",
+    measurementId: "G-WWP8VZY5D7"
+  };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+
+        // variables
+        var msgTxt = document.getElementById('msgTxt');
+        var sender;
+        if(sessionStorage.getItem('sender')){
+            sender = sessionStorage.getItem('sender');
+        } else {
+            sender = prompt('Masukkan Namamu...');
+            sessionStorage.setItem('sender',sender);
+        } 
+        if(sender == ""){
+    window.location.href = 'readme.html';
+          alert("Tidak Bisa Login Jika Akun Kosong");
+      }
+        if(sender == null){
+    window.location.href = 'readme.html';
+          alert("Tidak Bisa Login Jika Akun Kosong");
+}
+
+        // TO SEND MESSAGES
+        module.sendMsg = function sendMsg(){
+            var msg = msgTxt.value;
+            var timestamp = new Date().getTime();
+            set(ref(db,"messages/"+timestamp),{
+                msg : msg,
+                sender : sender
+            })
+
+            msgTxt.value="";
+        }
+
+        // TO RECEIVE MSG
+        onChildAdded(ref(db,"messages"), (data)=>{
+            if(data.val().sender == sender){
+                messages.innerHTML += "<div style=justify-content:end class=outer id="+data.key+"><div id=inner class=me>Anda : "+data.val().msg+"<button id=dltMsg onclick=module.dltMsg("+data.key+")>DELETE</button></div></div>";
+            } else {
+                messages.innerHTML += "<div class=outer id="+data.key+"><div id=inner class=notMe>"+data.val().sender+" : "+data.val().msg+"</div></div>";
+            }
+        })
+
+        // TO DELETE MSG
+        module.dltMsg = function dltMsg(key){
+            remove(ref(db,"messages/"+key));
+        }
+
+        // WHEN MSG IS DELETED
+        onChildRemoved(ref(db,"messages"),(data)=>{
+            var msgBox = document.getElementById(data.key);
+            messages.removeChild(msgBox);
+        })
+    </script>
+</body>
+
+</html>
