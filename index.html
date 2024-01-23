@@ -65,14 +65,26 @@
             msgTxt.value="";
         }
 
+        function getTimeString(timestamp) {
+    var date = new Date(timestamp);
+    var hours = date.getHours();
+    var minutes = date.getMinutes();
+    var timeString = hours + ':' + (minutes < 10 ? '0' : '') + minutes;
+    return timeString;
+           }
+        
+
         // TO RECEIVE MSG
-        onChildAdded(ref(db,"messages"), (data)=>{
-            if(data.val().sender == sender){
-                messages.innerHTML += "<div style=justify-content:end class=outer id="+data.key+"><div id=inner class=me>Anda : "+data.val().msg+"<button id=dltMsg onclick=module.dltMsg("+data.key+")>DELETE</button></div></div>";
-            } else {
-                messages.innerHTML += "<div class=outer id="+data.key+"><div id=inner class=notMe>"+data.val().sender+" : "+data.val().msg+"</div></div>";
-            }
-        })
+onChildAdded(ref(db, "messages"), (data) => {
+    var messageTime = getTimeString(data.key);
+    
+    if (data.val().sender == sender) {
+        messages.innerHTML += "<div style=justify-content:end class=outer id=" + data.key + "><div id=inner class=me>Anda : " + data.val().msg + " <span class=time>(" + messageTime + ")</span><button id=dltMsg onclick=module.dltMsg(" + data.key + ")>DELETE</button></div></div>";
+    } else {
+        messages.innerHTML += "<div class=outer id=" + data.key + "><div id=inner class=notMe>" + data.val().sender + " : " + data.val().msg + " <span class=time>(" + messageTime + ")</span></div></div>";
+    }
+});
+        
 
         // TO DELETE MSG
         module.dltMsg = function dltMsg(key){
